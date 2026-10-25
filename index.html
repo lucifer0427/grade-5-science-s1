@@ -34,28 +34,28 @@
     </div>
 
     <!-- 底部控制面板 -->
-    <footer class="flex justify-between items-end w-full">
+    <footer class="flex justify-between items-end w-full gap-4">
       <!-- 左下角：虛擬搖桿容器 (觸控螢幕自適應) -->
-      <div id="joystick-container" class="pointer-events-auto w-36 h-36 relative"></div>
+      <div id="joystick-container" class="pointer-events-auto w-36 h-36 relative flex-shrink-0"></div>
+
+      <!-- 中右側：動態關卡機關實體控制器容器 -->
+      <div id="controls-hud-container" class="pointer-events-auto flex-1 max-w-md"></div>
 
       <!-- 右下角：快捷按鈕與進度代碼 -->
-      <div class="flex flex-col items-end gap-2 pointer-events-auto">
+      <div class="flex flex-col items-end gap-2 pointer-events-auto flex-shrink-0">
         <div id="code-badge" class="bg-slate-900/80 text-amber-300 text-xs px-3 py-1.5 rounded-xl font-mono tracking-wider shadow">
           CODE: <span id="save-code-display">SUN-0000-00</span>
         </div>
         <div class="flex gap-2">
-          <button id="btn-sound" class="w-12 h-12 rounded-2xl bg-white/90 shadow-md border border-slate-200 flex items-center justify-center text-xl active:scale-95 transition-transform">🔊</button>
-          <button id="btn-help" class="w-12 h-12 rounded-2xl bg-white/90 shadow-md border border-slate-200 flex items-center justify-center text-xl active:scale-95 transition-transform">📖</button>
-          <button id="btn-action" class="px-5 h-12 rounded-2xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-bold shadow-lg transition-transform flex items-center gap-1.5">
-            <span>🚀 觀測/射擊</span>
-          </button>
+          <button id="btn-sound" class="w-12 h-12 rounded-2xl bg-white/90 shadow-md border border-slate-200 flex items-center justify-center text-xl active:scale-95 transition-transform" title="靜音開關">🔊</button>
+          <button id="btn-help" class="w-12 h-12 rounded-2xl bg-white/90 shadow-md border border-slate-200 flex items-center justify-center text-xl active:scale-95 transition-transform" title="科學探究錦囊">📖</button>
         </div>
       </div>
     </footer>
   </div>
 
-  <!-- POE 題目彈窗容器 -->
-  <div id="quiz-modal-container" class="absolute inset-0 z-20 pointer-events-none flex items-center justify-center p-4"></div>
+  <!-- POE 探究解鎖/回饋彈窗容器 -->
+  <div id="debrief-modal-container" class="absolute inset-0 z-20 pointer-events-none flex items-center justify-center p-4"></div>
 
   <!-- 開始遊戲 / 音訊解鎖覆蓋層 -->
   <div id="start-overlay" class="absolute inset-0 bg-sky-950/80 backdrop-blur-sm z-30 flex flex-col items-center justify-center text-white p-6">

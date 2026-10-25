@@ -14,7 +14,8 @@ import { Rover } from './entities/Rover.js';
 
 import { CompassHUD } from './ui/CompassHUD.js';
 import { VirtualJoystick } from './ui/VirtualJoystick.js';
-import { QuizOverlay } from './ui/QuizOverlay.js';
+import { GameControlsHUD } from './ui/GameControlsHUD.js';
+import { DebriefModal } from './ui/DebriefModal.js';
 import { GameState } from './game/GameState.js';
 
 async function bootstrap() {
@@ -67,48 +68,34 @@ async function bootstrap() {
     inputManager.setTouchVector(vx, vy);
   });
 
-  const quizContainer = document.getElementById('quiz-modal-container');
-  let gameState;
-  const quizOverlay = new QuizOverlay(quizContainer, (isSuccess) => {
-    if (gameState) gameState.handleQuestionComplete(isSuccess);
-  });
+  const controlsContainer = document.getElementById('controls-hud-container');
+  const controlsHud = new GameControlsHUD(controlsContainer);
+
+  const debriefContainer = document.getElementById('debrief-modal-container');
+  const debriefModal = new DebriefModal(debriefContainer);
 
   // 6. 狀態機啟動
-  gameState = new GameState(
+  const gameState = new GameState(
     engine,
     gnomon,
     solarRig,
     protractor,
     rover,
     compassHud,
-    quizOverlay
+    controlsHud,
+    debriefModal
   );
 
   gameState.startStage(0);
 
-  // 每幀接近度檢測
-  engine.addUpdatable({
-    update: () => {
-      gameState.checkProximity();
-    }
-  });
-
   // 7. 綁定按鈕事件
-  bus.on('cmd:action_pressed', () => {
-    gameState.triggerObservation();
-  });
-
-  document.getElementById('btn-action')?.addEventListener('click', () => {
-    gameState.triggerObservation();
-  });
-
   document.getElementById('btn-sound')?.addEventListener('click', (e) => {
     const isMuted = AudioManager.toggleMute();
     e.currentTarget.textContent = isMuted ? '🔇' : '🔊';
   });
 
   document.getElementById('btn-help')?.addEventListener('click', () => {
-    alert('【學習指引】\n1. 操控探測車靠近中央標竿觀測台。\n2. 觀察地表長影方向，想一想太陽在天空哪一方？\n3. 點擊「🚀 觀測/射擊」發射光束，驗證你的科學假說！');
+    alert('【探究錦囊】\n1. 仔細觀察標竿在地面上的影子方向與長度。\n2. 光是直線傳播的，影子永遠和太陽在相反的 180° 對稱方向。\n3. 高度角愈高，影子收縮愈短；正午時高度角最高，影子最短！');
   });
 
   // 8. 啟動覆蓋層按鈕解鎖音訊與開局

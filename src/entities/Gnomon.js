@@ -37,7 +37,27 @@ export class Gnomon {
     this.shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
     this.group.add(this.shadowMesh);
 
+    // 3. 關卡 2 專用：日晷門鎖感應能量圈 (半徑 0.5m)
+    const ringGeo = new THREE.RingGeometry(0.48, 0.52, 32);
+    ringGeo.rotateX(-Math.PI / 2);
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: 0x10b981,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.85
+    });
+    this.sensorRingMesh = new THREE.Mesh(ringGeo, ringMat);
+    this.sensorRingMesh.position.y = 0.02;
+    this.sensorRingMesh.visible = false;
+    this.group.add(this.sensorRingMesh);
+
     this.scene.add(this.group);
+  }
+
+  setSensorRingVisible(visible = true, radius = 0.5) {
+    this.sensorRingMesh.visible = visible;
+    const scale = radius / 0.5;
+    this.sensorRingMesh.scale.set(scale, 1, scale);
   }
 
   setPosition(x, z) {

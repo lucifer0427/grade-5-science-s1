@@ -85,13 +85,29 @@ export class Protractor3D {
   }
 
   /**
+   * 錯誤放置：將量角器圓心掛在竿頂，基線懸空朝向天空
+   */
+  snapToPoleTop(poleTopPoint) {
+    this.group.position.set(poleTopPoint.x, poleTopPoint.y, poleTopPoint.z);
+    this.group.rotation.set(Math.PI / 4, 0, Math.PI / 3); // 浮空傾斜
+    this.plateMesh.material.color.setHex(0xf43f5e); // 警報紅
+    this.baseLine.material.color.setHex(0xe11d48);
+
+    // 懸空時隱藏拉線
+    this.measureString.visible = false;
+  }
+
+  /**
    * 將量角器吸附於地表影端點，量角器垂直盤面朝向竿頂 (零 GC)
    */
   snapToShadow(shadowEndPoint, poleTopPoint, angleAzimuthRad) {
     this.group.position.set(shadowEndPoint.x, shadowEndPoint.y, shadowEndPoint.z);
     // 量角器盤面轉向陰影方向（沿影子直線垂直豎立），0° 基線精準指向標竿
-    this.group.rotation.y = -angleAzimuthRad - Math.PI / 2;
+    this.group.rotation.set(0, -angleAzimuthRad - Math.PI / 2, 0);
+    this.plateMesh.material.color.setHex(0x38bdf8); // 正確蔚藍
+    this.baseLine.material.color.setHex(0xf59e0b);
 
+    this.measureString.visible = true;
     const pos = this.measureString.geometry.attributes.position.array;
     pos[0] = poleTopPoint.x;
     pos[1] = poleTopPoint.y;

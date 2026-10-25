@@ -46,7 +46,45 @@ export class Rover {
     rightLight.position.set(0.25, 0.35, 0.45);
     this.group.add(rightLight);
 
-    // 3. 高能量發射雷射管 (外層立體光柱 + 核心亮紅射線)
+    // 3. 車頂旋轉砲塔 (包含底座與雷射砲管，支援 360 度獨立瞄準)
+    this.turretGroup = new THREE.Group();
+    this.turretGroup.position.set(0, 0.45, 0);
+
+    const turretBaseGeo = new THREE.CylinderGeometry(0.18, 0.22, 0.1, 8);
+    const turretBaseMat = new THREE.MeshBasicMaterial({ color: 0x334155 });
+    const turretBase = new THREE.Mesh(turretBaseGeo, turretBaseMat);
+    this.turretGroup.add(turretBase);
+
+    const canonGeo = new THREE.CylinderGeometry(0.04, 0.05, 0.5, 8);
+    canonGeo.rotateX(Math.PI / 2);
+    canonGeo.translate(0, 0.06, 0.25);
+    const canonMat = new THREE.MeshBasicMaterial({ color: 0x0284c7 });
+    const canon = new THREE.Mesh(canonGeo, canonMat);
+    this.turretGroup.add(canon);
+
+    this.group.add(this.turretGroup);
+
+    // 4. 車頂雙軸向日葵太陽能板 (供關卡 5 直射衝刺玩法)
+    this.solarPanelGroup = new THREE.Group();
+    this.solarPanelGroup.position.set(0, 0.5, -0.2);
+
+    const panelGeo = new THREE.BoxGeometry(0.6, 0.02, 0.5);
+    const panelMat = new THREE.MeshBasicMaterial({ color: 0x1e3a8a });
+    const panelMesh = new THREE.Mesh(panelGeo, panelMat);
+    this.solarPanelGroup.add(panelMesh);
+
+    // 面板太陽能感光方格線
+    const gridGeo = new THREE.PlaneGeometry(0.56, 0.46);
+    gridGeo.rotateX(-Math.PI / 2);
+    const gridMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, wireframe: true });
+    const gridMesh = new THREE.Mesh(gridGeo, gridMat);
+    gridMesh.position.y = 0.012;
+    this.solarPanelGroup.add(gridMesh);
+
+    this.solarPanelGroup.visible = false;
+    this.group.add(this.solarPanelGroup);
+
+    // 5. 高能量發射雷射管 (外層立體光柱 + 核心亮紅射線)
     const beamGeo = new THREE.CylinderGeometry(0.08, 0.08, 1.0, 8);
     beamGeo.translate(0, 0.5, 0);
     beamGeo.rotateX(Math.PI / 2);
@@ -107,24 +145,54 @@ export class Rover {
     }
   }
 
+  setTurretAzimuth(azimuthDeg) {
+    // 將世界座標方位角轉換為相對於探測車身之旋轉
+    const worldRad = (azimuthDeg * Math.PI) / 180;
+    this.turretGroup.rotation.y = -worldRad - this.group.rotation.y + Math.PI;
+  }
+
+  setSolarPanelVisible(visible = true) {
+    this.solarPanelGroup.visible = visible;
+  }
+
+  setSolarPanelOrientation(pitchDeg, yawDeg) {
+    const yawRad = (yawDeg * Math.PI) / 180;
+    const pitchRad = (pitchDeg * Math.PI) / 180;
+    this.solarPanelGroup.rotation.y = yawRad - this.group.rotation.y;
+    this.solarPanelGroup.rotation.x = pitchRad;
+  }
+
+  boostForward(duration = 2.0) {
+    this.speed = 22.0; // 氮氣全速加速
+    setTimeout(() => {
+      this.speed = 7.0;
+    }, duration * 1000);
+  }
+
   /**
    * 向前上方發射雷射瞄準射線
    */
-  shootLaser(targetAzimuthDeg, targetAltitudeDeg) {
+  shootLaser(targetAzimuthDeg = null, targetAltitudeDeg = 25) {
     this.isShooting = true;
     this.shootTimer = 0.8; // 顯示 0.8 秒
 
     _laserStart.copy(this.group.position).add(_laserOffset);
 
-    // 發射角度 (依探測車當前朝向)
-    const forwardX = Math.sin(this.group.rotation.y);
-    const forwardZ = Math.cos(this.group.rotation.y);
+    let aimRad = 0;
+    if (targetAzimuthDeg !== null && targetAzimuthDeg !== undefined) {
+      aimRad = (targetAzimuthDeg * Math.PI) / 180;
+      this.setTurretAzimuth(targetAzimuthDeg);
+    } else {
+      aimRad = (Math.atan2(Math.sin(this.group.rotation.y), Math.cos(this.group.rotation.y)));
+    }
 
-    _laserEnd.set(
-      _laserStart.x + forwardX * 35,
-      _laserStart.y + 20,
-      _laserStart.z + forwardZ * 35
-    );
+    const altRad = (targetAltitudeDeg * Math.PI) / 180;
+    const r = 40.0;
+    const endX = _laserStart.x + r * Math.sin(aimRad) * Math.cos(altRad);
+    const endY = _laserStart.y + r * Math.sin(altRad);
+    const endZ = _laserStart.z - r * Math.cos(aimRad) * Math.cos(altRad);
+
+    _laserEnd.set(endX, endY, endZ);
 
     // 更新立體雷射管
     this.laserBeamMesh.position.copy(_laserStart);
@@ -133,12 +201,8 @@ export class Rover {
     this.laserBeamMesh.scale.set(1, 1, dist);
     this.laserBeamMesh.visible = true;
 
-    // 計算發射向量之方位角 (0~360° 正北順時針)
-    let aimAzimuth = (Math.atan2(forwardX, -forwardZ) * 180) / Math.PI;
-    if (aimAzimuth < 0) aimAzimuth += 360;
-
     return {
-      aimAzimuth: Number(aimAzimuth.toFixed(1))
+      aimAzimuth: targetAzimuthDeg !== null ? targetAzimuthDeg : Number(((aimRad * 180) / Math.PI + 360) % 360)
     };
   }
 }

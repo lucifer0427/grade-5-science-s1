@@ -67,6 +67,29 @@ export class SolarRig {
 
     this.altitude = 45;
     this.azimuth = 180;
+    this.isFogMode = false;
+  }
+
+  setFogMode(enabled = true) {
+    this.isFogMode = enabled;
+    if (enabled) {
+      this.sunMesh.visible = false;
+      this.haloMesh.visible = false;
+      this.raysMesh.visible = false;
+      this.beamMesh.visible = false;
+    } else {
+      this.sunMesh.visible = true;
+      this.haloMesh.visible = true;
+      this.raysMesh.visible = true;
+    }
+  }
+
+  dispelFogAndRevealSun() {
+    this.isFogMode = false;
+    this.sunMesh.visible = true;
+    this.haloMesh.visible = true;
+    this.raysMesh.visible = true;
+    this.beamMesh.visible = true;
   }
 
   setPosition(altitudeDeg, azimuthDeg, radius = 35) {

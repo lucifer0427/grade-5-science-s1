@@ -1,7 +1,7 @@
 // src/game/ProgressManager.js
 export class ProgressManager {
   static STORAGE_KEY = 'grade5_solar_progress_v1';
-  static TOTAL_STAGES = 4;
+  static TOTAL_STAGES = 5;
 
   /**
    * 載入當前進度遮罩 (Bitmask)
