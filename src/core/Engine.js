@@ -32,9 +32,15 @@ export class Engine {
     this.camera.position.set(20, 24, 20);
     this.camera.lookAt(0, 0, 0);
 
-    // 全域無陰影環境光 (Draw Calls = 0 dynamic shadow passes)
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
-    this.scene.add(ambientLight);
+    // 半球光 (天藍頂光 + 地表綠色漫反射反彈，營造立體感)
+    const hemiLight = new THREE.HemisphereLight(0xe0f2fe, 0x166534, 0.75);
+    this.scene.add(hemiLight);
+
+    // 主陽光平行光 (純幾何光照，嚴格停用 castShadow 避免 ShadowMap 開銷)
+    this.sunLight = new THREE.DirectionalLight(0xfffbeb, 0.85);
+    this.sunLight.position.set(20, 35, 20);
+    this.sunLight.castShadow = false;
+    this.scene.add(this.sunLight);
 
     this.updatables = [];
     this.targetToFollow = null;

@@ -22,8 +22,8 @@ export class AssetManager {
         tex.generateMipmaps = false;
         this.paletteTexture = tex;
 
-        // 全場景共用單一無光照材質球 (Draw Calls 壓縮核心)
-        this.sharedMaterial = new THREE.MeshBasicMaterial({
+        // 全場景共用單一調色盤材質球 (MeshLambertMaterial 帶來立體光影刻面感)
+        this.sharedMaterial = new THREE.MeshLambertMaterial({
           map: tex,
           side: THREE.DoubleSide
         });

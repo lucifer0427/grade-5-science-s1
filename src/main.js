@@ -6,6 +6,7 @@ import { AudioManager } from './core/AudioManager.js';
 import { InputManager } from './core/InputManager.js';
 import { bus } from './core/EventBus.js';
 
+import { Environment } from './entities/Environment.js';
 import { Gnomon } from './entities/Gnomon.js';
 import { SolarRig } from './entities/SolarRig.js';
 import { Protractor3D } from './entities/Protractor3D.js';
@@ -21,20 +22,9 @@ async function bootstrap() {
   const engine = new Engine(canvas);
   const inputManager = new InputManager();
 
-  // 1. 建立操場草坪地面 (Draw Calls = 1)
-  const groundGeo = new THREE.PlaneGeometry(60, 60);
-  groundGeo.rotateX(-Math.PI / 2);
-  const groundMat = new THREE.MeshBasicMaterial({ color: 0x86efac }); // 淺草綠
-  const ground = new THREE.Mesh(groundGeo, groundMat);
-  engine.scene.add(ground);
-
-  // 操場跑道外圈標線
-  const ringGeo = new THREE.RingGeometry(18, 19, 32);
-  ringGeo.rotateX(-Math.PI / 2);
-  const ringMat = new THREE.MeshBasicMaterial({ color: 0xfef08a, side: THREE.DoubleSide });
-  const trackRing = new THREE.Mesh(ringGeo, ringMat);
-  trackRing.position.y = 0.005;
-  engine.scene.add(trackRing);
+  // 1. 校園環境與操場跑道、植被、白雲造景
+  const environment = new Environment(engine.scene);
+  engine.addUpdatable(environment);
 
   // 2. 資產管理器載入 Blender 模型與共用調色盤
   const assetManager = new AssetManager(engine.renderer, engine.scene, engine.camera);
@@ -47,11 +37,20 @@ async function bootstrap() {
   // 十六方位地盤底座 (放在標竿底下)
   const dialModel = assetManager.getModel('compass_dial');
   if (dialModel) {
-    dialModel.position.set(0, 0, 0);
+    dialModel.position.set(0, 0.22, 0); // 貼合中央石階頂部
     engine.scene.add(dialModel);
   }
 
-  const solarRig = new SolarRig(engine.scene, assetManager);
+  // 操場邊緣展示雙軸追日向日葵模型
+  const trackerModel = assetManager.getModel('solar_tracker');
+  if (trackerModel) {
+    trackerModel.position.set(-10, 0, 8);
+    engine.scene.add(trackerModel);
+  }
+
+  const solarRig = new SolarRig(engine.scene, assetManager, engine);
+  engine.addUpdatable(solarRig);
+
   const protractor = new Protractor3D(engine.scene);
   const rover = new Rover(engine.scene, assetManager);
 

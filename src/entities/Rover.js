@@ -6,7 +6,7 @@ import { bus } from '../core/EventBus.js';
 const _moveDir = new THREE.Vector3();
 const _laserStart = new THREE.Vector3();
 const _laserEnd = new THREE.Vector3();
-const _laserOffset = new THREE.Vector3(0, 0.6, 0); // 靜態偏置常數，消除 new Vector3
+const _laserOffset = new THREE.Vector3(0, 0.6, 0); // 靜態偏置常數
 
 export class Rover {
   constructor(scene, assetManager) {
@@ -19,27 +19,46 @@ export class Rover {
     if (model) {
       this.group.add(model);
     } else {
-      // 降級替代立方體
       const bodyGeo = new THREE.BoxGeometry(0.7, 0.35, 0.9);
-      const bodyMat = assetManager.sharedMaterial || new THREE.MeshBasicMaterial({ color: 0xfbbf24 });
+      const bodyMat = assetManager.sharedMaterial || new THREE.MeshLambertMaterial({ color: 0xfbbf24 });
       const body = new THREE.Mesh(bodyGeo, bodyMat);
       body.position.y = 0.35;
       this.group.add(body);
     }
 
-    // 2. 雷射瞄準發射線
-    const laserGeo = new THREE.BufferGeometry().setFromPoints([
-      new THREE.Vector3(0, 0, 0),
-      new THREE.Vector3(0, 0, 0)
-    ]);
-    const laserMat = new THREE.LineBasicMaterial({
+    // 2. 探測車前方雙向探照車燈光錐 (Headlight Cones)
+    const lightConeGeo = new THREE.ConeGeometry(0.5, 3.5, 8);
+    lightConeGeo.rotateX(Math.PI / 2);
+    lightConeGeo.translate(0, 0, 1.75); // 前向伸展
+    const lightConeMat = new THREE.MeshBasicMaterial({
+      color: 0xfef08a,
+      transparent: true,
+      opacity: 0.18,
+      depthWrite: false,
+      side: THREE.DoubleSide
+    });
+
+    const leftLight = new THREE.Mesh(lightConeGeo, lightConeMat);
+    leftLight.position.set(-0.25, 0.35, 0.45);
+    this.group.add(leftLight);
+
+    const rightLight = new THREE.Mesh(lightConeGeo, lightConeMat);
+    rightLight.position.set(0.25, 0.35, 0.45);
+    this.group.add(rightLight);
+
+    // 3. 高能量發射雷射管 (外層立體光柱 + 核心亮紅射線)
+    const beamGeo = new THREE.CylinderGeometry(0.08, 0.08, 1.0, 8);
+    beamGeo.translate(0, 0.5, 0);
+    beamGeo.rotateX(Math.PI / 2);
+    const beamMat = new THREE.MeshBasicMaterial({
       color: 0xef4444,
       transparent: true,
-      opacity: 0.9
+      opacity: 0.75,
+      depthWrite: false
     });
-    this.laserLine = new THREE.Line(laserGeo, laserMat);
-    this.laserLine.visible = false;
-    this.scene.add(this.laserLine);
+    this.laserBeamMesh = new THREE.Mesh(beamGeo, beamMat);
+    this.laserBeamMesh.visible = false;
+    this.scene.add(this.laserBeamMesh);
 
     this.group.position.set(0, 0, 6); // 起始位置
     this.scene.add(this.group);
@@ -62,17 +81,17 @@ export class Rover {
     if (this.inputVector.x !== 0 || this.inputVector.y !== 0) {
       _moveDir.set(this.inputVector.x, 0, this.inputVector.y).normalize();
 
-      // 朝向旋轉
+      // 朝向平滑旋轉
       const targetAngle = Math.atan2(_moveDir.x, _moveDir.z);
       this.group.rotation.y = THREE.MathUtils.lerp(this.group.rotation.y, targetAngle, 0.15);
 
-      // 位移 (限制在操場半徑 20 範圍內)
+      // 位移 (限制在操場半徑 22 範圍內)
       this.group.position.x += _moveDir.x * this.speed * delta;
       this.group.position.z += _moveDir.z * this.speed * delta;
 
       const distFromCenter = Math.hypot(this.group.position.x, this.group.position.z);
-      if (distFromCenter > 20) {
-        const ratio = 20 / distFromCenter;
+      if (distFromCenter > 22) {
+        const ratio = 22 / distFromCenter;
         this.group.position.x *= ratio;
         this.group.position.z *= ratio;
       }
@@ -83,7 +102,7 @@ export class Rover {
       this.shootTimer -= delta;
       if (this.shootTimer <= 0) {
         this.isShooting = false;
-        this.laserLine.visible = false;
+        this.laserBeamMesh.visible = false;
       }
     }
   }
@@ -97,7 +116,7 @@ export class Rover {
 
     _laserStart.copy(this.group.position).add(_laserOffset);
 
-    // 發射角度 (依探測車當前朝向或瞄準方向)
+    // 發射角度 (依探測車當前朝向)
     const forwardX = Math.sin(this.group.rotation.y);
     const forwardZ = Math.cos(this.group.rotation.y);
 
@@ -107,15 +126,12 @@ export class Rover {
       _laserStart.z + forwardZ * 35
     );
 
-    const pos = this.laserLine.geometry.attributes.position.array;
-    pos[0] = _laserStart.x;
-    pos[1] = _laserStart.y;
-    pos[2] = _laserStart.z;
-    pos[3] = _laserEnd.x;
-    pos[4] = _laserEnd.y;
-    pos[5] = _laserEnd.z;
-    this.laserLine.geometry.attributes.position.needsUpdate = true;
-    this.laserLine.visible = true;
+    // 更新立體雷射管
+    this.laserBeamMesh.position.copy(_laserStart);
+    this.laserBeamMesh.lookAt(_laserEnd);
+    const dist = _laserStart.distanceTo(_laserEnd);
+    this.laserBeamMesh.scale.set(1, 1, dist);
+    this.laserBeamMesh.visible = true;
 
     // 計算發射向量之方位角 (0~360° 正北順時針)
     let aimAzimuth = (Math.atan2(forwardX, -forwardZ) * 180) / Math.PI;
