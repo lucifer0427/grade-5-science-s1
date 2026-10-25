@@ -92,12 +92,16 @@ export class SolarRig {
     this.beamMesh.visible = true;
   }
 
-  setPosition(altitudeDeg, azimuthDeg, radius = 35) {
+  setPosition(altitudeDeg, azimuthDeg, radius = 45, targetOrigin = null) {
     this.altitude = altitudeDeg;
     this.azimuth = azimuthDeg;
 
+    if (targetOrigin) {
+      _origin.set(targetOrigin.x, targetOrigin.y, targetOrigin.z);
+    }
+
     const pos = SunPathMath.toCartesian(azimuthDeg, altitudeDeg, radius);
-    _sunPos.set(pos.x, pos.y, pos.z);
+    _sunPos.set(pos.x + _origin.x, pos.y + _origin.y, pos.z + _origin.z);
     this.sunMesh.position.copy(_sunPos);
 
     // 同步更新主光源角度，使陰影刻面與太陽即時連動
@@ -105,14 +109,13 @@ export class SolarRig {
       this.engine.sunLight.position.copy(_sunPos);
     }
 
-    // 光暈面朝原點
-    this.haloMesh.lookAt(0, 0, 0);
+    // 光暈面朝觀測核心
+    this.haloMesh.lookAt(_origin);
 
-    // 更新立體光柱幾何
-    _midPoint.copy(_sunPos).multiplyScalar(0.5);
+    // 更新立體光柱幾何 (連接島嶼標竿與太陽)
     this.beamMesh.position.copy(_origin);
     this.beamMesh.lookAt(_sunPos);
-    this.beamMesh.scale.set(1, 1, _sunPos.length());
+    this.beamMesh.scale.set(1, 1, _origin.distanceTo(_sunPos));
   }
 
   showRayLine(visible = true) {

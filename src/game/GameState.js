@@ -5,8 +5,9 @@ import { SunPathMath } from './SunPathMath.js';
 import { AudioManager } from '../core/AudioManager.js';
 
 export class GameState {
-  constructor(engine, gnomon, solarRig, protractor, rover, compassHud, controlsHud, debriefModal) {
+  constructor(engine, archipelago, gnomon, solarRig, protractor, rover, compassHud, controlsHud, debriefModal, islandNav) {
     this.engine = engine;
+    this.archipelago = archipelago;
     this.gnomon = gnomon;
     this.solarRig = solarRig;
     this.protractor = protractor;
@@ -14,6 +15,7 @@ export class GameState {
     this.compassHud = compassHud;
     this.controlsHud = controlsHud;
     this.debriefModal = debriefModal;
+    this.islandNav = islandNav;
 
     this.questions = questionsData.questions;
     this.currentStageIndex = 0;
@@ -25,6 +27,12 @@ export class GameState {
 
     this.updateSaveCodeHUD();
     this.initControlCallbacks();
+
+    if (this.islandNav) {
+      this.islandNav.onSelectIsland = (stageIdx) => {
+        this.startStage(stageIdx);
+      };
+    }
   }
 
   updateSaveCodeHUD() {
@@ -89,13 +97,22 @@ export class GameState {
       this.stageTargetElem.textContent = `破除迷思：${q.misconceptionTarget}`;
     }
 
+    // 1. 取得當前六角島嶼世界坐標
+    const islandPos = this.archipelago.getIslandPos(stageIndex);
+
+    // 2. 鏡頭飛越至該島，探測車降落該島
+    this.engine.flyToIsland(islandPos.x, islandPos.y, islandPos.z);
+    this.gnomon.setPosition(islandPos.x, islandPos.y + 0.4, islandPos.z);
+    this.rover.setIslandCenter(islandPos.x, islandPos.y, islandPos.z, 5.0);
+
+    // 3. 天體物理坐標換算
     const env = q.environmentConfig;
     let pos = { altitude: env.sunAltitude, azimuth: env.sunAzimuth };
     if (env.season && env.timeHour) {
       pos = SunPathMath.calculatePosition(env.season, env.timeHour);
     }
 
-    this.solarRig.setPosition(pos.altitude, pos.azimuth);
+    this.solarRig.setPosition(pos.altitude, pos.azimuth, 45, islandPos);
     const shadowInfo = this.gnomon.updateShadow(pos.altitude, pos.azimuth);
     this.compassHud.update(pos.azimuth, pos.altitude, shadowInfo.shadowLength);
 
@@ -127,7 +144,7 @@ export class GameState {
       const polePos = this.gnomon.getPosition();
       this.protractor.snapToShadow(
         shadowInfo.shadowEndPoint,
-        { x: polePos.x, y: 1.0, z: polePos.z },
+        { x: polePos.x, y: polePos.y + 1.0, z: polePos.z },
         (shadowInfo.shadowAzimuthDeg * Math.PI) / 180
       );
     } else if (stageIndex === 4) {
@@ -139,8 +156,11 @@ export class GameState {
       this.rover.setSolarPanelOrientation(0, 200);
     }
 
-    // 渲染對應的動態控制面版
+    // 渲染對應的動態控制面版與島嶼切換標籤
     this.controlsHud.renderStageControls(stageIndex, q);
+    if (this.islandNav) {
+      this.islandNav.update(stageIndex, this.bitmask);
+    }
   }
 
   // --- 關卡 1 機關處理 ---
@@ -162,7 +182,6 @@ export class GameState {
       );
       this.advanceProgress(0);
     } else {
-      // 判斷是否瞄向影子方向 (約 292.5°)
       const shadowDiff = Math.abs(aimDeg - (targetAzimuth + 180) % 360);
       const isAimingAtShadow = Math.min(shadowDiff, 360 - shadowDiff) < 25;
       const q = this.questions[0];
@@ -178,7 +197,8 @@ export class GameState {
 
   // --- 關卡 2 機關處理 ---
   handleStage2AltitudeChange(alt) {
-    this.solarRig.setPosition(alt, 180);
+    const islandPos = this.archipelago.getIslandPos(1);
+    this.solarRig.setPosition(alt, 180, 45, islandPos);
     const shadowInfo = this.gnomon.updateShadow(alt, 180);
     this.compassHud.update(180, alt, shadowInfo.shadowLength);
     return shadowInfo;
@@ -189,7 +209,6 @@ export class GameState {
     const q = this.questions[1];
 
     if (shadowInfo.shadowLength <= 0.50) {
-      // 影子成功縮入光圈！
       AudioManager.playLaser();
       this.debriefModal.showSuccess(
         '⚡ 日晷大門充能解鎖！',
@@ -209,10 +228,8 @@ export class GameState {
   // --- 關卡 3 機關處理 ---
   handleStage3Scan(alt, az) {
     if (alt === 90) {
-      // 瞄準正頭頂
       this.solarRig.showRayLine(false);
     } else {
-      // 瞄準南方天空
       this.solarRig.showRayLine(true);
     }
   }
@@ -242,11 +259,11 @@ export class GameState {
     const shadowInfo = this.gnomon.updateShadow(45, 225);
 
     if (placement === 'pole_top') {
-      this.protractor.snapToPoleTop({ x: polePos.x, y: 1.0, z: polePos.z });
+      this.protractor.snapToPoleTop({ x: polePos.x, y: polePos.y + 1.0, z: polePos.z });
     } else {
       this.protractor.snapToShadow(
         shadowInfo.shadowEndPoint,
-        { x: polePos.x, y: 1.0, z: polePos.z },
+        { x: polePos.x, y: polePos.y + 1.0, z: polePos.z },
         (shadowInfo.shadowAzimuthDeg * Math.PI) / 180
       );
     }
@@ -298,6 +315,10 @@ export class GameState {
   advanceProgress(stageIndex) {
     this.bitmask = ProgressManager.unlockNextStage(this.bitmask, stageIndex, 3);
     this.updateSaveCodeHUD();
+
+    if (this.islandNav) {
+      this.islandNav.update(this.currentStageIndex, this.bitmask);
+    }
 
     this.debriefModal.onNext = () => {
       const nextStage = stageIndex + 1;

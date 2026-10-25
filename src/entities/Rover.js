@@ -104,10 +104,16 @@ export class Rover {
     this.inputVector = { x: 0, y: 0 };
     this.isShooting = false;
     this.shootTimer = 0;
+    this.islandCenter = { x: 0, y: 0, z: 0, radius: 5.2 };
 
     bus.on('input:vector_changed', (vec) => {
       this.inputVector = vec;
     });
+  }
+
+  setIslandCenter(x, y, z, radius = 5.0) {
+    this.islandCenter = { x, y, z, radius };
+    this.group.position.set(x, y + 0.4, z + 2.5);
   }
 
   getPosition() {
@@ -123,15 +129,18 @@ export class Rover {
       const targetAngle = Math.atan2(_moveDir.x, _moveDir.z);
       this.group.rotation.y = THREE.MathUtils.lerp(this.group.rotation.y, targetAngle, 0.15);
 
-      // 位移 (限制在操場半徑 22 範圍內)
+      // 位移 (限制在當前六角島嶼半徑範圍內)
       this.group.position.x += _moveDir.x * this.speed * delta;
       this.group.position.z += _moveDir.z * this.speed * delta;
 
-      const distFromCenter = Math.hypot(this.group.position.x, this.group.position.z);
-      if (distFromCenter > 22) {
-        const ratio = 22 / distFromCenter;
-        this.group.position.x *= ratio;
-        this.group.position.z *= ratio;
+      const dx = this.group.position.x - this.islandCenter.x;
+      const dz = this.group.position.z - this.islandCenter.z;
+      const dist = Math.hypot(dx, dz);
+      const maxR = this.islandCenter.radius * 0.9;
+      if (dist > maxR) {
+        const ratio = maxR / dist;
+        this.group.position.x = this.islandCenter.x + dx * ratio;
+        this.group.position.z = this.islandCenter.z + dz * ratio;
       }
     }
 

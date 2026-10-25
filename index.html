@@ -15,14 +15,19 @@
   <!-- 2D DOM HUD 覆蓋層 (100% Tailwind CSS) -->
   <div id="ui-overlay" class="absolute inset-0 pointer-events-none flex flex-col justify-between p-4 z-10">
     <!-- 頂部資訊列 -->
-    <header class="flex justify-between items-start w-full">
-      <div class="bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-lg border border-sky-200 pointer-events-auto flex items-center gap-3">
-        <div class="w-10 h-10 rounded-full bg-amber-400 flex items-center justify-center text-xl shadow-inner">☀️</div>
-        <div>
-          <h1 id="stage-title" class="font-bold text-base text-slate-800 leading-tight">第一關：逆光雷射盲盒</h1>
-          <p id="stage-target" class="text-xs text-sky-700 font-medium">破除迷思：太陽與影子方位呈 180° 對稱</p>
+    <header class="flex flex-col md:flex-row justify-between items-start w-full gap-2">
+      <div class="flex items-center gap-3">
+        <div class="bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-lg border border-sky-200 pointer-events-auto flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-amber-400 flex items-center justify-center text-xl shadow-inner">☀️</div>
+          <div>
+            <h1 id="stage-title" class="font-bold text-base text-slate-800 leading-tight">第一關：逆光雷射盲盒</h1>
+            <p id="stage-target" class="text-xs text-sky-700 font-medium">破除迷思：太陽與影子方位呈 180° 對稱</p>
+          </div>
         </div>
       </div>
+
+      <!-- 中間：沈伯洋政策島 / 卡坦島風格 5 座六角島導覽列 -->
+      <div id="island-nav-container" class="pointer-events-auto flex justify-center"></div>
 
       <!-- 右上角：羅盤與高度角儀表 -->
       <div id="compass-hud-container" class="pointer-events-auto"></div>

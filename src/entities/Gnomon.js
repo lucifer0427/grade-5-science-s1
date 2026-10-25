@@ -60,8 +60,13 @@ export class Gnomon {
     this.sensorRingMesh.scale.set(scale, 1, scale);
   }
 
-  setPosition(x, z) {
-    this.group.position.set(x, 0, z);
+  setPosition(x, y, z = null) {
+    if (z === null) {
+      // 兼容 setPosition(x, z) 舊調用
+      this.group.position.set(x, 0, y);
+    } else {
+      this.group.position.set(x, y, z);
+    }
   }
 
   getPosition() {
@@ -88,12 +93,13 @@ export class Gnomon {
 
     // 回傳影子末端的三維世界座標 (供量角器吸附與判定)
     const endX = this.group.position.x + shadowLength * Math.sin(shadowAzimuthRad);
+    const endY = this.group.position.y + 0.02;
     const endZ = this.group.position.z - shadowLength * Math.cos(shadowAzimuthRad);
 
     return {
       shadowLength: Number(shadowLength.toFixed(2)),
       shadowAzimuthDeg: Number(shadowAzimuthDeg.toFixed(1)),
-      shadowEndPoint: { x: endX, y: 0.02, z: endZ }
+      shadowEndPoint: { x: endX, y: endY, z: endZ }
     };
   }
 }
