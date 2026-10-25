@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#38bdf8">
+  <title>國小五上自然：太陽的秘密 3D</title>
+  <link rel="icon" href="./favicon.ico">
+  <link rel="stylesheet" href="./src/style.css">
+</head>
+<body class="bg-sky-100 text-slate-800 antialiased">
+  <!-- 3D WebGL Canvas -->
+  <canvas id="webgl-canvas"></canvas>
+
+  <!-- 2D DOM HUD 覆蓋層 (100% Tailwind CSS) -->
+  <div id="ui-overlay" class="absolute inset-0 pointer-events-none flex flex-col justify-between p-4 z-10">
+    <!-- 頂部資訊列 -->
+    <header class="flex justify-between items-start w-full">
+      <div class="bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-lg border border-sky-200 pointer-events-auto flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-amber-400 flex items-center justify-center text-xl shadow-inner">☀️</div>
+        <div>
+          <h1 id="stage-title" class="font-bold text-base text-slate-800 leading-tight">第一關：逆光雷射盲盒</h1>
+          <p id="stage-target" class="text-xs text-sky-700 font-medium">破除迷思：太陽與影子方位呈 180° 對稱</p>
+        </div>
+      </div>
+
+      <!-- 右上角：羅盤與高度角儀表 -->
+      <div id="compass-hud-container" class="pointer-events-auto"></div>
+    </header>
+
+    <!-- 中間提示或接近互動氣泡 -->
+    <div id="interactive-prompt" class="self-center hidden bg-amber-500 text-white font-bold px-6 py-3 rounded-full shadow-2xl animate-bounce pointer-events-auto text-sm flex items-center gap-2 border-2 border-white">
+      <span>🎯 點擊空白鍵或畫面「開始觀測」</span>
+    </div>
+
+    <!-- 底部控制面板 -->
+    <footer class="flex justify-between items-end w-full">
+      <!-- 左下角：虛擬搖桿容器 (觸控螢幕自適應) -->
+      <div id="joystick-container" class="pointer-events-auto w-36 h-36 relative"></div>
+
+      <!-- 右下角：快捷按鈕與進度代碼 -->
+      <div class="flex flex-col items-end gap-2 pointer-events-auto">
+        <div id="code-badge" class="bg-slate-900/80 text-amber-300 text-xs px-3 py-1.5 rounded-xl font-mono tracking-wider shadow">
+          CODE: <span id="save-code-display">SUN-0000-00</span>
+        </div>
+        <div class="flex gap-2">
+          <button id="btn-sound" class="w-12 h-12 rounded-2xl bg-white/90 shadow-md border border-slate-200 flex items-center justify-center text-xl active:scale-95 transition-transform">🔊</button>
+          <button id="btn-help" class="w-12 h-12 rounded-2xl bg-white/90 shadow-md border border-slate-200 flex items-center justify-center text-xl active:scale-95 transition-transform">📖</button>
+          <button id="btn-action" class="px-5 h-12 rounded-2xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-bold shadow-lg transition-transform flex items-center gap-1.5">
+            <span>🚀 觀測/射擊</span>
+          </button>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <!-- POE 題目彈窗容器 -->
+  <div id="quiz-modal-container" class="absolute inset-0 z-20 pointer-events-none flex items-center justify-center p-4"></div>
+
+  <!-- 開始遊戲 / 音訊解鎖覆蓋層 -->
+  <div id="start-overlay" class="absolute inset-0 bg-sky-950/80 backdrop-blur-sm z-30 flex flex-col items-center justify-center text-white p-6">
+    <div class="max-w-md w-full bg-white text-slate-800 rounded-3xl p-6 shadow-2xl text-center border-4 border-amber-400">
+      <div class="text-6xl mb-3">☀️</div>
+      <h2 class="text-2xl font-black text-slate-900 mb-1">太陽的秘密 3D</h2>
+      <p class="text-slate-600 text-sm mb-6">國小五年級自然科學（翰林版）探究探測任務</p>
+      
+      <div class="bg-sky-50 rounded-2xl p-4 text-left text-xs text-sky-900 mb-6 space-y-2 border border-sky-100">
+        <p class="font-bold text-sm text-sky-950">🎮 操作說明：</p>
+        <p>• <b>移動</b>：鍵盤 W/A/S/D、方向鍵 或 左下角虛擬搖桿</p>
+        <p>• <b>觀測/發射</b>：空白鍵 或 右下角「🚀 觀測/射擊」按鈕</p>
+        <p>• <b>任務</b>：解開 4 大光影迷思，收集三星探測成就！</p>
+      </div>
+
+      <button id="btn-start-game" class="w-full py-4 bg-amber-500 hover:bg-amber-600 active:scale-95 text-white text-lg font-bold rounded-2xl shadow-xl transition-all">
+        啟動探測車，開始探索！
+      </button>
+    </div>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

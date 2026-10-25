@@ -1,0 +1,94 @@
+{
+  "version": "1.0.0",
+  "subject": "science",
+  "gradeLevel": 5,
+  "unit": "太陽的秘密",
+  "questions": [
+    {
+      "id": "stage-1-azimuth-inverse",
+      "stageId": 1,
+      "type": "shadow_alignment",
+      "misconceptionTarget": "方位同向謬誤（以為影子在北方太陽就在北方）",
+      "prompt": "【逆光盲盒】觀測器上的標竿長影筆直朝向【西北西方】。請操控探測車發射雷射光束，找出天空中的太陽真正位於哪一個方位？",
+      "environmentConfig": {
+        "sunAltitude": 25,
+        "sunAzimuth": 112.5,
+        "season": "spring_autumn",
+        "timeHour": 8
+      },
+      "options": ["西北西方", "東南東方", "西南西方", "正天頂 (90°)"],
+      "correctAnswer": 1,
+      "poeFeedback": {
+        "predictionFail": "注意！光是直線傳播的，陽光從背後照射才會在前方產生影子。影子指向西北西方，太陽不可能在西北西方！",
+        "scientificExplanation": "因為光沿直線前進，影子方位與太陽方位永遠呈 180° 相反對稱（光源、竿頂、影端三點共線）。影子指向西北西，太陽必定位於相反的【東南東方】。"
+      }
+    },
+    {
+      "id": "stage-2-altitude-inverse",
+      "stageId": 2,
+      "type": "angle_tuning",
+      "misconceptionTarget": "高度角正比謬誤（以為中午太陽最高最大，影子一定最長）",
+      "prompt": "【縮影大門】如果要讓標竿的影子縮到最短（例如 2.1 公分），我們應該把太陽的高度角調到幾度？",
+      "environmentConfig": {
+        "sunAltitude": 67,
+        "sunAzimuth": 185,
+        "season": "spring_autumn",
+        "timeHour": 12
+      },
+      "options": ["拉低到 20° (接近地平線)", "拉升到 67° (接近正午最高點)", "拉低到 10° (日出日落)", "高度角對影長沒有影響"],
+      "correctAnswer": 1,
+      "poeFeedback": {
+        "predictionFail": "回想一下，當手電筒從側面照時影子很長，垂直拿高照射時影子會變長還是縮短？",
+        "scientificExplanation": "依據直角三角形反比模型 (tan θ = h/L)，太陽高度角愈大，地面的影子長度愈短；正午時高度角達到全日最高，影子縮到全日最短！"
+      }
+    },
+    {
+      "id": "stage-3-winter-solstice-noon",
+      "stageId": 3,
+      "type": "spatial_choice",
+      "misconceptionTarget": "正午必在天頂 (90°) 之絕對化文化語義謬誤",
+      "prompt": "【冬至正午調查】今天是臺灣嘉義（北回歸線）的冬至正午 12:00。操場旗桿拖著長長的影子指向正北方。此刻天空中的太陽究竟在哪裡？",
+      "environmentConfig": {
+        "sunAltitude": 43,
+        "sunAzimuth": 180,
+        "season": "winter",
+        "timeHour": 12
+      },
+      "options": [
+        "太陽在正頭頂天頂 (高度角 90°)",
+        "太陽偏在南方天空斜上方 (高度角約 43°)",
+        "冬天的正午太陽在北方",
+        "冬天太陽不會升起"
+      ],
+      "correctAnswer": 1,
+      "poeFeedback": {
+        "predictionFail": "如果太陽真的在頭頂正上方 (90°)，旗桿影子應該縮成竿底一個點。既然影子很長且指向正北，代表陽光是從哪裡斜射過來的？",
+        "scientificExplanation": "臺灣全境位於北回歸線附近，全年中只有夏至正午太陽才會直射天頂。在冬至正午，太陽顯著偏向南方天空（高度角僅約 43°），因此會形成明顯指向正北的長影！"
+      }
+    },
+    {
+      "id": "stage-4-protractor-base",
+      "stageId": 4,
+      "type": "spatial_choice",
+      "misconceptionTarget": "量角器空間放置基線與圓心錯誤",
+      "prompt": "【3D 磁吸量角器】在使用量角器測量太陽高度角時，量角器的「中心圓心」與「0度底線」應該如何正確擺放？",
+      "environmentConfig": {
+        "sunAltitude": 45,
+        "sunAzimuth": 225,
+        "season": "spring_autumn",
+        "timeHour": 14
+      },
+      "options": [
+        "圓心掛在標竿頂端，底線朝向天空懸空",
+        "圓心貼在地面影子末端點，底線水平平貼地面",
+        "隨便放地上，只要看到數字就好",
+        "圓心貼在觀測者眼睛上"
+      ],
+      "correctAnswer": 1,
+      "poeFeedback": {
+        "predictionFail": "量角器的 0 度底線代表「地平面」，如果掛在竿頂，量出的就不是入射線與地面的夾角了！",
+        "scientificExplanation": "所謂「太陽高度角」是指太陽光線入射方向與「水平地面」的夾角。因此量角器底線必須平平貼在地面上，中心圓心緊對齊影子末端，由竿頂拉線讀取度數。"
+      }
+    }
+  ]
+}

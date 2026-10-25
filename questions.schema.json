@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SunObservationQuestionBank",
+  "type": "object",
+  "required": ["version", "subject", "gradeLevel", "unit", "questions"],
+  "properties": {
+    "version": { "type": "string" },
+    "subject": { "type": "string", "enum": ["science"] },
+    "gradeLevel": { "type": "integer", "enum": [5] },
+    "unit": { "type": "string" },
+    "questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "stageId",
+          "type",
+          "misconceptionTarget",
+          "prompt",
+          "environmentConfig",
+          "options",
+          "correctAnswer",
+          "poeFeedback"
+        ],
+        "properties": {
+          "id": { "type": "string" },
+          "stageId": { "type": "integer" },
+          "type": { "type": "string", "enum": ["spatial_choice", "shadow_alignment", "angle_tuning"] },
+          "misconceptionTarget": { "type": "string" },
+          "prompt": { "type": "string" },
+          "environmentConfig": {
+            "type": "object",
+            "required": ["sunAltitude", "sunAzimuth", "season", "timeHour"],
+            "properties": {
+              "sunAltitude": { "type": "number", "minimum": 0, "maximum": 90 },
+              "sunAzimuth": { "type": "number", "minimum": 0, "maximum": 360 },
+              "season": { "type": "string", "enum": ["spring_autumn", "summer", "winter"] },
+              "timeHour": { "type": "number", "minimum": 6, "maximum": 18 }
+            }
+          },
+          "options": {
+            "type": "array",
+            "items": { "type": "string" },
+            "minItems": 2,
+            "maxItems": 4
+          },
+          "correctAnswer": { "type": "integer", "minimum": 0, "maximum": 3 },
+          "poeFeedback": {
+            "type": "object",
+            "required": ["predictionFail", "scientificExplanation"],
+            "properties": {
+              "predictionFail": { "type": "string" },
+              "scientificExplanation": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}
